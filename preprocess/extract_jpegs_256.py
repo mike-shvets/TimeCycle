@@ -1,22 +1,19 @@
 import argparse
-import fnmatch
-import glob
-import json
 import os
-import shutil
 import subprocess
-import uuid
 
 from joblib import delayed
 from joblib import Parallel
-import pandas as pd
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('data_folder', help='Path to dataset root folder.')
+parser.add_argument('njobs', type=int, default=10, nargs='?', help='Number of parallel jobs.')
+args = parser.parse_args()
 
-folder_path = 'YOUR_DATASET_FOLDER/vlog_256/'
-output_path = 'YOUR_DATASET_FOLDER/vlog_frames_12fps/'
-file_src = 'YOUR_DATASET_FOLDER/manifest.txt'
-
+file_src = os.path.join(args.data_folder, 'manifest.txt')
+folder_path = os.path.join(args.data_folder, 'vlog_256')
+output_path = os.path.join(args.data_folder, 'vlog_frames_12fps')
 
 file_list = []
 
@@ -51,6 +48,7 @@ def download_clip_wrapper(row):
     videoname = row
 
     inname = folder_path  + '/' + videoname + '/clip.mp4'
+    assert os.path.exists(inname), '{} does not exist.'.format(inname)
     outname = output_path + '/' +videoname
 
     if os.path.isdir(outname) is False:
@@ -67,4 +65,5 @@ def download_clip_wrapper(row):
 
 # if __name__ == '__main__':
 
-status_lst = Parallel(n_jobs=10)(delayed(download_clip_wrapper)(row) for row in file_list)
+status_lst = Parallel(n_jobs=args.njobs)(delayed(download_clip_wrapper)(row) for row in file_list)
+

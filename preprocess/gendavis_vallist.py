@@ -1,13 +1,19 @@
+import argparse
 import os
-import numpy as np
 
-outlist = 'YOUR_DATASET_FOLDER/davis/DAVIS/vallist.txt'
-imgfolder = 'YOUR_DATASET_FOLDER/davis/DAVIS/JPEGImages/480p/'
-lblfolder = 'YOUR_DATASET_FOLDER/davis/DAVIS/Annotations/480p/'
+
+parser = argparse.ArgumentParser()
+parser.add_argument('data_folder', help='Path to dataset root folder.')
+args = parser.parse_args()
+
+outlist = os.path.join(args.data_folder, 'davis/DAVIS/vallist.txt')
+imgfolder = os.path.join(args.data_folder, 'davis/DAVIS/JPEGImages/480p/')
+lblfolder = os.path.join(args.data_folder, 'davis/DAVIS/Annotations/480p/')
 
 jpglist = []
 
-f1 = open('YOUR_DATASET_FOLDER/davis/DAVIS/ImageSets/2017/val.txt', 'r')
+valpath = os.path.join(args.data_folder, 'davis/DAVIS/ImageSets/2017/val.txt')
+f1 = open(valpath, 'r')
 for line in f1:
     line = line[:-1]
     jpglist.append(line)

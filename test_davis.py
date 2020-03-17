@@ -37,7 +37,6 @@ from torch.autograd import Variable
 
 
 params = {}
-params['filelist'] = '/nfs.yoda/xiaolonw/davis/DAVIS/vallist.txt'
 # params['batchSize'] = 24
 params['imgSize'] = 320
 params['cropSize'] = 320
@@ -61,6 +60,7 @@ def str_to_bool(v):
 # Parse arguments
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 
+parser.add_argument('filelist', help='Path to DAVIS vallist.txt file.')
 # Datasets
 parser.add_argument('-d', '--data', default='path to dataset', type=str)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
@@ -127,6 +127,7 @@ parser.add_argument('--save_path', default='', type=str)
 args = parser.parse_args()
 state = {k: v for k, v in args._get_kwargs()}
 
+params['filelist'] = args.filelist
 
 params['batchSize'] = state['batchSize']
 print('batchSize: ' + str(params['batchSize']) )
@@ -182,7 +183,7 @@ def main():
     global best_loss
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
-    if not os.path.isdir(args.checkpoint):
+    if not os.path.isdir(args.checkpoint) and not args.evaluate:
         mkdir_p(args.checkpoint)
 
     val_loader = torch.utils.data.DataLoader(
@@ -190,8 +191,10 @@ def main():
         batch_size=int(params['batchSize']), shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-
-    model = video3d.CycleTime(class_num=params['classNum'], trans_param_num=3, pretrained=args.pretrained_imagenet, temporal_out=args.temporal_out)
+    model = video3d.CycleTime(
+        trans_param_num=3,
+        pretrained=args.pretrained_imagenet,
+        temporal_out=args.temporal_out)
     model = torch.nn.DataParallel(model).cuda()
 
     cudnn.benchmark = False

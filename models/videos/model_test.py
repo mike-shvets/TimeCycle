@@ -26,7 +26,14 @@ import sys
 
 class CycleTime(nn.Module):
 
-    def __init__(self, class_num=8, dim_in=2048, trans_param_num=6, detach_network=False, pretrained=True, temporal_out=4, T=None):
+    def __init__(
+            self,
+            trans_param_num=6,
+            detach_network=False,
+            pretrained=True,
+            temporal_out=4,
+            T=None):
+
         super(CycleTime, self).__init__()
 
         dim = 512

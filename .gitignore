@@ -1,0 +1,7 @@
+*.pyc
+
+.idea
+
+datasets
+pytorch_checkpoints
+

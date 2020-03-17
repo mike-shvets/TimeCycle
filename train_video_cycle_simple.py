@@ -47,7 +47,6 @@ from utils import Logger, AverageMeter, mkdir_p, savefig
 import models.dataset.vlog_train as vlog
 
 params = {}
-params['filelist'] = '/nfs.yoda/xiaolonw/vlog/vlog_frames_12fps.txt'
 params['imgSize'] = 256
 params['imgSize2'] = 320
 params['cropSize'] = 240
@@ -66,8 +65,10 @@ def str_to_bool(v):
 # Parse arguments
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 
+parser.add_argument('filelist', help='Path to vlog_frames_12fps.txt file.')
+
 # Datasets
-parser.add_argument('-d', '--data', default='path to dataset', type=str)
+# parser.add_argument('-d', '--data', default='path to dataset', type=str)
 parser.add_argument('-j', '--workers', default=12, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 # Optimization options
@@ -122,6 +123,8 @@ parser.add_argument('--optim', default='adam', type=str,
 args = parser.parse_args()
 state = {k: v for k, v in args._get_kwargs()}
 
+params['filelist'] = args.filelist
+
 params['predDistance'] = state['predDistance']
 print(params['predDistance'])
 
@@ -165,6 +168,7 @@ def partial_load(pretrained_dict, model):
     # 3. load the new state dict
     model.load_state_dict(pretrained_dict)
 
+
 def main():
     global best_loss
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
@@ -172,14 +176,17 @@ def main():
     if not os.path.isdir(args.checkpoint):
         mkdir_p(args.checkpoint)
 
-    model = models.CycleTime(class_num=params['classNum'], trans_param_num=3, pretrained=args.pretrained_imagenet, temporal_out=params['videoLen'], T=args.T, hist=args.hist)
+    model = models.CycleTime(
+        trans_param_num=3,
+        pretrained=args.pretrained_imagenet,
+        temporal_out=params['videoLen'],
+        T=args.T,
+        hist=args.hist)
 
     model = torch.nn.DataParallel(model).cuda()
 
     cudnn.benchmark = False
     print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
-
-    criterion = nn.CrossEntropyLoss().cuda()
 
     if args.optim == 'adam':
         optimizer = optim.Adam(model.parameters(), lr=args.lr, betas=(args.momentum, 0.999), weight_decay=args.weight_decay)
@@ -229,7 +236,8 @@ def main():
     for epoch in range(start_epoch, args.epochs):
         print('\nEpoch: [%d | %d] LR: %f' % (epoch + 1, args.epochs, state['lr']))
 
-        train_loss, theta_loss, theta_skip_loss = train(train_loader, model, criterion, optimizer, epoch, use_cuda, args)
+        train_loss, theta_loss, theta_skip_loss = \
+            train(train_loader, model, optimizer, args)
 
         # append logger file
         logger.append([state['lr'], train_loss, theta_loss, theta_skip_loss])
@@ -246,9 +254,10 @@ def main():
 def set_bn_eval(m):
     classname = m.__class__.__name__
     if classname.find('BatchNorm') != -1:
-      m.eval()
+        m.eval()
 
-def train(train_loader, model, criterion, optimizer, epoch, use_cuda, args):
+
+def train(train_loader, model, optimizer, args):
     # switch to train mode
     model.train()
     # model.apply(set_bn_eval)

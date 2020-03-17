@@ -1,10 +1,14 @@
-
-import numpy as np
+import argparse
 import os
 
-src = 'YOUR_DATASET_FOLDER/manifest.txt'
-outlist = 'YOUR_DATASET_FOLDER/vlog_frames_12fps.txt'
-foldername = 'YOUR_DATASET_FOLDER/vlog_frames_12fps/'
+
+parser = argparse.ArgumentParser()
+parser.add_argument('data_folder', help='Path to dataset root folder.')
+args = parser.parse_args()
+
+src = os.path.join(args.data_folder, 'manifest.txt')
+outlist = os.path.join(args.data_folder, 'vlog_frames_12fps.txt')
+foldername = os.path.join(args.data_folder, 'vlog_frames_12fps/')
 
 file = open(src, 'r')
 fout = open(outlist, 'w')

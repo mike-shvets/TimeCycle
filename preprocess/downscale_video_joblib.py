@@ -1,20 +1,18 @@
 import argparse
-import fnmatch
-import glob
-import json
 import os
-import shutil
 import subprocess
-import uuid
 
 from joblib import delayed
 from joblib import Parallel
-import pandas as pd
 
-file_src = 'YOUR_DATASET_FOLDER/manifest.txt'
-folder_path = 'YOUR_DATASET_FOLDER/vlog/'
-output_path = 'YOUR_DATASET_FOLDER/vlog_256/'
 
+parser = argparse.ArgumentParser()
+parser.add_argument('data_folder', help='Path to dataset root folder.')
+args = parser.parse_args()
+
+file_src = os.path.join(args.data_folder, 'manifest.txt')
+folder_path = os.path.join(args.data_folder, 'vlog')
+output_path = os.path.join(args.data_folder, 'vlog_256')
 
 file_list = []
 
@@ -50,8 +48,8 @@ def download_clip_wrapper(row):
 
     videoname = row
 
-    inname = folder_path  + '/' + videoname + '/clip.mp4'
-    outname = output_path + '/' +videoname
+    inname = os.path.join(folder_path, videoname, 'clip.mp4')
+    outname = os.path.join(output_path, videoname)
 
     if os.path.isdir(outname) is False:
         try:
@@ -59,8 +57,7 @@ def download_clip_wrapper(row):
         except:
             print(outname)
 
-    outname = outname + '/clip.mp4'
-
+    outname = os.path.join(outname, 'clip.mp4')
 
     downloaded, log = download_clip(inname, outname)
     return downloaded
